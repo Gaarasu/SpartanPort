@@ -22,8 +22,9 @@ from pathlib import Path
 import shutil
 import struct
 
-VERSION = 10  # of the drawing: a change redraws the cached copies
+VERSION = 12  # of the drawing: a change redraws the cached copies
 WADS = ('EXEC/WAD/PS4_LE/R_UI.WAD', 'EXEC/WAD/PS4_LE/R_PERM.WAD', 'EXEC/WAD/PS4_LE/OLY150.WAD')
+
 FONT = Path(__file__).resolve().parent.parent / 'launcher' / 'Cinzel-Black.ttf'
 # The lyre's letters are a Didone (the game sets Χ Ο Π Δ in one) with sturdy hairlines: Bodoni Moda
 # (OFL) at its smallest optical size, thickened by LYRE_STROKE pixels to the original's stem weights.
@@ -79,9 +80,10 @@ DEFAULT_MAP = {'cross': 'a', 'circle': 'b', 'square': 'x', 'triangle': 'y', 'l1'
 DEFAULT_KEYS = {'cross': 'Space', 'circle': 'Left Shift', 'square': 'E', 'triangle': 'Q', 'l1': '1', 'r1': '3',
                 'l2': 'R', 'r2': 'F', 'l3': 'Z', 'r3': 'C', 'options': 'Return', 'touchpad_right': 'Backspace',
                 'up': 'I'}
-# The keys that move the sticks (src/runtime_pad.c key_axis). ponytail: fixed, as in the runtime;
-# read them from SPARTAN_KEY_MAP once movement can be remapped.
+# Compact default labels, expanded to the assigned inputs when a direction changes.
 STICK_KEYS = {'lstick': 'WASD', 'rstick': 'Arrows'}
+STICK_BINDINGS = {'move_up': 'W', 'move_left': 'A', 'move_down': 'S', 'move_right': 'D',
+                  'look_up': 'Up', 'look_left': 'Left', 'look_down': 'Down', 'look_right': 'Right'}
 # Key caps for the longer SDL key names (casefolded); the others print their name in capitals.
 KEY_LABELS = {'space': 'SPACE', 'left shift': 'SHIFT', 'right shift': 'R SHIFT', 'left ctrl': 'CTRL',
               'right ctrl': 'R CTRL', 'left alt': 'ALT', 'right alt': 'ALT GR', 'left gui': 'WIN',
@@ -137,10 +139,13 @@ def key_buttons(key_map):
     Unlike the gamepad, L2/R2 are keys too. 'None' (a button left without a key) keeps the default,
     except L3/R3 with Rage of Sparta on one input: they show the rage key, which presses both."""
     buttons, unbound, rage = {**DEFAULT_KEYS, **STICK_KEYS}, set(), ''
+    directions = dict(STICK_BINDINGS)
     for entry in (key_map or '').split(','):
         game, _, host = (part.strip() for part in entry.partition('='))
         game = game.casefold()
-        if game == 'rage':
+        if game in directions and host:
+            directions[game] = host
+        elif game == 'rage':
             rage = host if host.casefold() != 'none' else ''
         elif game in buttons and host.casefold() == 'none':
             unbound.add(game)
@@ -148,6 +153,10 @@ def key_buttons(key_map):
             buttons[game] = host
     for game in unbound & {'l3', 'r3'} if rage else ():
         buttons[game] = rage
+    for prefix, stick in (('move_', 'lstick'), ('look_', 'rstick')):
+        names = [name for name in directions if name.startswith(prefix)]
+        if any(directions[name].casefold() != STICK_BINDINGS[name].casefold() for name in names):
+            buttons[stick] = '/'.join(directions[name] for name in names)
     return buttons
 
 
@@ -265,8 +274,9 @@ def draw_inline(shape, label, color, width, height):
         edge.ellipse(box, outline=(14, 14, 14, 255), width=k * 3 // 2)
     else:
         edge.rounded_rectangle(box, 5 * k, outline=(14, 14, 14, 255), width=k * 3 // 2)
-    inset_x = size[0] * (0.2 if shape == 'disc' else 0.22 if shape == 'key' else 0.1)
-    inset_y = size[1] * (0.2 if shape in ('disc', 'key') else 0.16)
+    # A key name (SPACE, SHIFT, M4) is wider than a face letter: on a 64 px icon it needs most of the cap.
+    inset_x = size[0] * (0.2 if shape == 'disc' else 0.12 if shape == 'key' else 0.1)
+    inset_y = size[1] * (0.2 if shape == 'disc' else 0.14 if shape == 'key' else 0.16)
     draw_label(image, (box[0] + inset_x, box[1] + inset_y, box[2] - inset_x, box[3] - inset_y), label, color)
     return image.resize((width, height), Image.LANCZOS)
 
@@ -279,9 +289,10 @@ def draw_prompt(label, color, width, height, cap=False):
     layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     if cap:
         side = min(w, h)
-        ImageDraw.Draw(layer).rounded_rectangle((w * 0.14, h * 0.14, w * 0.86, h * 0.86), side * 0.1,
+        # The cap fills the prompt, leaving room for the glow, so the key reads at a glance mid-fight.
+        ImageDraw.Draw(layer).rounded_rectangle((w * 0.06, h * 0.06, w * 0.94, h * 0.94), side * 0.1,
                                                 outline=color, width=max(1, int(side * 0.035)))
-        draw_label(layer, (w * 0.26, h * 0.3, w * 0.74, h * 0.7), label, color)
+        draw_label(layer, (w * 0.15, h * 0.22, w * 0.85, h * 0.78), label, color)
     else:
         draw_label(layer, (w * 0.24, h * 0.2, w * 0.76, h * 0.8), label, color)
     image = Image.new('RGBA', (w, h), (0, 0, 0, 255))

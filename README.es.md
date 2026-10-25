@@ -125,7 +125,7 @@ Fedora 42, Arch y openSUSE Tumbleweed; esto no comprueba gameplay en todas las G
 3. Elegí la carpeta del juego, guardá los ajustes y presioná **PLAY**.
 
 Si una descarga anterior muestra `GLIBC_2.44 not found`, descargá de nuevo el AppImage recompilado.
-El actualizador de Windows no está disponible en Linux; descargá un AppImage nuevo para actualizar.
+El AppImage se actualiza solo: **Advanced → Check for updates** (o el aviso al abrir el launcher) descarga el AppImage nuevo del release, verifica su SHA-256 y reemplaza el archivo. Necesita una carpeta con permiso de escritura; si no, abre la página de releases.
 La corrupción gráfica en Steam Deck/RADV es un problema conocido del AppImage 2.2.0 publicado.
 
 - **Archivos:** las partidas, los ajustes, la caché de shaders y el log están en
@@ -244,10 +244,11 @@ Valores por defecto; cambialos en la página **Controls** del launcher, sección
 | Q y E | L1 y R1 |
 | R y el botón de avanzar del mouse | L2 y R2 |
 | Z y X | L3 y R3 |
-| Clic de la rueda | Rage of Sparta (L3 + R3) |
+| F | Rage of Sparta (L3 + R3) |
 | C | Agarre (L1 + Círculo) |
 | El botón de retroceder del mouse | Esquivar |
 | 1, 2, 3, 4 | cruceta: arriba, derecha, abajo, izquierda (armas) |
+| Rueda del mouse hacia arriba y hacia abajo | arma siguiente y arma anterior (recorre las armas de la cruceta); en los menús del juego (título, pausa y Power Up) sube y baja la selección, y vuelve a las armas al caminar o esquivar |
 | Tab | Options |
 | P | clic del touchpad izquierdo (modo foto) |
 | Esc | clic del touchpad derecho (menú de pausa) |
