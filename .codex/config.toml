@@ -1,0 +1,21 @@
+# Project-specific Codex roles. Models and permissions inherit from the session.
+
+[agents.architect]
+description = "Investigate and design SpartanPort changes without editing production code."
+config_file = "agents/architect.toml"
+
+[agents.implementer]
+description = "Implement SpartanPort changes and appropriate tests."
+config_file = "agents/implementer.toml"
+
+[agents.reviewer]
+description = "Review SpartanPort changes without modifying files."
+config_file = "agents/reviewer.toml"
+
+[agents.tester]
+description = "Add targeted SpartanPort tests for uncovered cases."
+config_file = "agents/tester.toml"
+
+[agents.re-analyst]
+description = "Investigate game artifacts read-only and report evidence."
+config_file = "agents/re-analyst.toml"
